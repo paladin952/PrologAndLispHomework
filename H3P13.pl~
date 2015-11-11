@@ -1,0 +1,46 @@
+%13. Given a list of integer numbers and lists of integer numbers.
+%       In every sub-list, write two times elements from N to N steps.
+
+duplicate([], []).
+
+duplicate([H|T], [Hr|Tr]):-
+	Hr is H *2,
+	duplicate(T, Tr).
+
+mainDuplicate([], [_], _, _).
+
+mainDuplicate([H|T], [Hr|Tr], Cp, N):-
+	Cp = N,
+	not(is_list(H)),
+	Hr is H,
+	mainDuplicate(T, Tr, Cp, N).
+
+mainDuplicate([H|T], [Hr|Tr], Cp, N):-
+	Cp \= N,
+	not(is_list(H)),
+	Hr is H,
+	mainDuplicate(T, Tr, Cp, N).
+
+mainDuplicate([H|T], [Hr|Tr], Cp,  N):-
+	      Cp \= N,
+	      is_list(H),
+	      NewCp is Cp + 1,
+	      Hr = H,
+	      mainDuplicate(T, Tr, NewCp, N).
+
+mainDuplicate([H|T], [Hr|Tr], Cp, N):-
+	Cp = N,
+	is_list(H),
+	duplicate(H,R),
+	Hr = R,
+	NewCp is Cp + 1,
+	NewN is N * 2,
+	mainDuplicate(T, Tr, NewCp, NewN).
+
+mainMain(L, R, N):-
+	Cp is 1,
+	mainDuplicate(L, R, Cp, N).
+
+
+
+
