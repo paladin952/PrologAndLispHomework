@@ -1,4 +1,4 @@
-%Generate all permutation of N (N - given) with the property that for 
+%Generate all permutation of N (N - given) with the property that for
 %   every 2<=i<=n exists an 1<=j<=i, so |v(i)-v(j)|=1
 elemAtPos([H|_], C, P, R):-
 	C = P,
@@ -39,7 +39,7 @@ checkBefore([H|T], C, E, P, 0):-
 	checkBefore(T, NewC, E, P, 0).
 
 
- lengthList([],0). 
+ lengthList([],0).
  lengthList([_|T],N):-
    lengthList(T,X),
    N  is  X+1.
@@ -49,7 +49,7 @@ checkWholeList(L, C, 1):-
 	C > Len,
 	!,
 	true.
-	
+
 checkWholeList(_, _, 0):-
 	!,
 	false.
@@ -70,7 +70,7 @@ checkWholeList(L, C, 1):-
 	elemAtPos(L, 1, C, Elem),
 	not(checkBefore(L, 1, Elem, C, 0)),
 	checkWholeList(L, C, 0).
-	
+
 checkWholeList(L, C, 1):-
 	C = 1,
 	NewC is C + 1,
@@ -82,9 +82,13 @@ appendlist([T|H], X, [T|L]) :-
 
 permutation([], []).
 permutation([X], [X]) :-!.
-permutation([T|H], X) :- 
+permutation([T|H], X) :-
 	permutation(H, H1),
-	appendlist(L1, L2, H1), 
-	appendlist(L1, [T], X1), 
+	appendlist(L1, L2, H1),
+	appendlist(L1, [T], X1),
 	appendlist(X1, L2, X),
+	checkWholeList(X, 1, 1).
+
+start(L, X):-
+	permutation(L, X),
 	checkWholeList(X, 1, 1).
