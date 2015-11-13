@@ -1,0 +1,554 @@
+% --------------------------------------------------------------------------------
+% 1. a. Remove all occurrences of a number from a list.
+
+eliminate([], _, []).
+eliminate([H|T], H, Rt):-
+	!,
+	eliminate(T, H, Rt).
+eliminate([H|T], E, [H|Rt]):-
+	!,
+	eliminate(T, E, Rt).
+
+% 1. b. Given a list, construct the list of frequencies for it (that is a list of pairs, where each pair is of the form (element_from_original_list, no_of_occurrences)).
+
+% get the number of occurrences of a value in a given list.
+noOfOccurrences([], _, 0).
+noOfOccurrences([H|T], H, R):-
+	noOfOccurrences(T, H, R1),
+	R is R1 + 1.
+noOfOccurrences([H|T], E, R):-
+	H \= E,
+	noOfOccurrences(T, E, R).
+
+getFrequency([], []).
+getFrequency([H|T], [[H, N]|R]):-
+	noOfOccurrences([H|T], H, N),
+	eliminate(T, H, Rt),
+	!,
+	getFrequency(Rt, R).
+
+% --------------------------------------------------------------------------------
+% 2. a. Union of two sets.
+
+% remove all occurrences of each element in the first list, from the second list.
+trimDuplicates([], R, R).
+trimDuplicates(_, [], []) :- !.
+trimDuplicates([H|T], Rt, R):-
+	eliminate(Rt, H, R1),
+	trimDuplicates(T, R1, R).
+
+% Concatenate 2 lists.
+addAll([], R, R).
+addAll([H|T], R, [H|Rt]):-
+	addAll(T, R, Rt).
+
+buildUnion([], R, R).
+buildUnion(R, [], R).
+buildUnion(L1, L2, R1):-
+	trimDuplicates(L1, L2, R),
+	addAll(L1, R, R1).
+
+% 2. b. Given a list of elements, build a list of pairs of each element and all the other ones) (i.e. [a b c d] gives us the list [[a b] [a c] [a d] [b c] [b d] [c d]]).
+
+% make a list of pairs, where each pair contains an element H from the initial list, and a given value E.
+buildPairsAux([], _, []).
+buildPairsAux([H|T], E, [[E, H]|R]):-
+	buildPairsAux(T, E, R).
+
+buildPairs([], []):-
+	!.
+buildPairs([_], []):-
+	!.
+buildPairs([H1, H2], [[H1, H2]]).
+buildPairs([H|T], R):-
+	buildPairsAux(T, H, R1),
+	buildPairs(T, R2),
+	!,
+	buildUnion(R1, R2, R).
+
+% --------------------------------------------------------------------------------
+% 3. a. Insert an element on the n-th position in a list.
+
+insertAt([], E, _, [E]).
+insertAt(L, E, 1, [E|L]).
+insertAt([H|T], E, N, [H|R]):-
+	N \= 1,
+	N1 is N - 1,
+	insertAt(T, E, N1, R),
+	!.
+
+% 3. b. Determine the GCD of all numbers in a list.
+
+% compute the GCD of 2 numbers.
+gcdNo(0, Y, Y):- !.
+gcdNo(X, 0, X):- !.
+gcdNo(1, _, 1):- !.
+gcdNo(_, 1, 1):- !.
+gcdNo(X, Y, R):-
+	X < 0,
+	!,
+	X1 is -X,
+	gcdNo(X1, Y, R).
+gcdNo(X, Y, R):-
+	Y < 0,
+	!,
+	Y1 is -Y,
+	gcdNo(X, Y1, R).
+gcdNo(X, Y, R):-
+	X > Y,
+	!,
+	X1 is X - Y,
+	gcdNo(X1, Y, R).
+gcdNo(X, Y, R):-
+	X < Y,
+	!,
+	Y1 is Y - X,
+	gcdNo(X, Y1, R).
+gcdNo(X, X, X):- !.
+
+% compute the GCD of a list and a given number
+gcdAux([], E, E).
+gcdAux([H|T], E, R):-
+	gcdNo(H, E, R1),
+	gcdAux(T, R1, R).
+
+gcdList([H|T], R):-
+	gcdAux(T, H, R).
+
+% --------------------------------------------------------------------------------
+% 4. a. Substitute all occurrences of a number with another number.
+
+replaceNo([], _, _, []).
+replaceNo([H|T], E, S, [H|R]):-
+	H \= E,
+	replaceNo(T, E, S, R).
+replaceNo([H|T], E, S, [S|R]):-
+	H =:= E,
+	replaceNo(T, E, S, R).
+
+% 4. b. Given a list, build a sublist starting at position n and ending at position m, from that list (i.e. sublist([l1, l2, l3, l4], 2, 4) gives us the sublist [l2, l3, l4]).
+
+% construct a sublist with elements from positions N to M, starting at a given position P.
+sublistAux([], _, _, _, []).
+sublistAux(L, N, M, P, R):-
+	N < 1,
+	!,
+	sublistAux(L, 1, M, P, R).
+sublistAux(_, _, M, _, []):-
+	M < 1,
+	!.
+sublistAux(L, N, M, P, R):-
+	N > M,
+	!,
+	sublistAux(L, M, N, P, R).
+sublistAux([_|T], N, M, P, R):-
+	P < N,
+	P1 is P + 1,
+	sublistAux(T, N, M, P1, R),
+	!.
+sublistAux([H|T], N, M, P, [H|R]):-
+	P >= N,
+	M >= P,
+	P1 is P + 1,
+	sublistAux(T, N, M, P1, R),
+	!.
+sublistAux(_, _, M, P, []):-
+	P > M,
+	!.
+
+sublist(L, N, M, R):-
+	sublistAux(L, N, M, 1, R).
+
+% --------------------------------------------------------------------------------
+% 5. a. Determine whether a list has an even or odd number of elements, without counting them (return true if even, false otherwise).
+
+hasEvenCount([]):-
+	!,
+	true.
+hasEvenCount([_]):-
+	!,
+	false.
+hasEvenCount([_, _|T]):-
+	hasEvenCount(T).
+
+% 5. b. Compute the alternate sum of the elements of a list (i.e. l1 - l2 + l3 - l4 + ...).
+
+alernateSum([], 0):- !.
+alternateSum([H], H):- !.
+alternateSum([H|T], S):-
+	alternateSum(T, S1),
+	S is H - S1.
+
+% --------------------------------------------------------------------------------
+% 6. b. Intersection of two sets.
+
+buildIntersection([], _, []).
+buildIntersection([H|T], L, R):-
+	noOfOccurrences(L, H, N),
+	N =:= 0,
+	buildIntersection(T, L, R),
+	!.
+buildIntersection([H|T], L, [H|R]):-
+	noOfOccurrences(L, H, N),
+	N > 0,
+	buildIntersection(T, L, R),
+	!.
+
+% --------------------------------------------------------------------------------
+% 7. a. Make a set out of a list, in order of first appearance (remove all duplicates as you parse from beginning to end, basically).
+
+makeSetFirst([], []).
+makeSetFirst([H|T], [H|R]):-
+	noOfOccurrences(T, H, N),
+	N > 0,
+	eliminate(T, H, R1),
+	makeSetFirst(R1, R),
+	!.
+makeSetFirst([H|T], [H|R]):-
+	noOfOccurrences(T, H, N),
+	N =:= 0,
+	makeSetFirst(T, R),
+	!.
+
+% 7. b. Given a list L, create a second list R, containing 2 lists, one with the even numbers of L, and the other with the odd numbers of L. Also, return the number of evens and that of odds ([1, 2, 3, 4] yields  R = [[2, 4], [1, 3]], E = 2 (even values), O = 2 (odd values)).
+
+% getModValues will get all elements which, when computing H % V, yield the result N.
+getModValues([], _, _, []).
+getModValues([H|T], N, V, [H|R]):-
+	N is mod(H, V),
+	getModValues(T, N, V, R),
+	!.
+getModValues([_|T], N, V, R):-
+	getModValues(T, N, V, R),
+	!.
+
+getElementCount([], 0).
+getElementCount([_|T], S):-
+	getElementCount(T, S1),
+	S is S1 + 1.
+
+buildSegregatedList([], [[], []], 0, 0).
+buildSegregatedList(L, [RE, RO], E, O):-
+	getModValues(L, 0, 2, RE),
+	getModValues(L, 1, 2, RO),
+	getElementCount(RE, E),
+	getElementCount(RO, O).
+
+% --------------------------------------------------------------------------------
+% 8. a. Difference of two sets.
+
+buildDifference([], _, []):- !.
+buildDifference(L1, L2, R):-
+	trimDuplicates(L2, L1, R).
+
+% 8. b. Insert the value 1 into a list, after every even number.
+
+getWeirdList([], []).
+getWeirdList([H|T], [H, 1|R]):-
+	0 is mod(H, 2),
+	getWeirdList(T, R),
+	!.
+getWeirdList([H|T], [H|R]):-
+	getWeirdList(T, R),
+	!.
+
+% --------------------------------------------------------------------------------
+% 9. a. Make a set out of a list, in order of last appearance (remove all duplicates as you parse from end to beginning, basically).
+
+makeSetLast([], []).
+makeSetLast([H|T], R):-
+	noOfOccurrences(T, H, N),
+	N > 0,
+	makeSetLast(T, R),
+	!.
+makeSetLast([H|T], [H|R]):-
+	makeSetLast(T, R),
+	!.
+
+% 9. b. GCD of numbers in a list. See 3. b.
+
+% --------------------------------------------------------------------------------
+% 10. a. LCM of numbers in a list.
+
+% absolute value of a number
+absNo(A, A):-
+	A >= 0.
+absNo(A, -A):-
+	A < 0.
+
+lcmNo(A, B, R):-
+	absNo(A * B, V),
+	gcdNo(A, B, G),
+	R is V // G,
+	!.
+
+% compute LCM of a list and a given number.
+lcmListAux([], N, N).
+lcmListAux([H|T], N, R):-
+	lcmNo(H, N, N1),
+	lcmListAux(T, N1, R),
+	!.
+
+lcmList([H|T], R):-
+	lcmListAux(T, H, R).
+
+% --------------------------------------------------------------------------------
+% 10. b. Insert a given value after positions that are powers of 2 (pos 1, pos 2, pos 4, pos 8, so on and so forth).
+
+% check whether a value is a power of 2.
+isPowOf2(V):-
+	V =< 0,
+	!,
+	false.
+isPowOf2(2):-
+	!,
+	true.
+isPowOf2(V):-
+	1 is mod(V, 2),
+	!,
+	false.
+isPowOf2(V):-
+	V2 is V // 2,
+	isPowOf2(V2),
+	!.
+
+% insert a value V on positions that are powers of 2 in a list L, starting from a position P.
+insertPowOf2Aux([], _, _, []).
+insertPowOf2Aux([H|T], V, P, [H, V|R]):-
+	isPowOf2(P),
+	P2 is P + 1,
+	insertPowOf2Aux(T, V, P2, R),
+	!.
+insertPowOf2Aux([H|T], V, P, [H|R]):-
+	P2 is P + 1,
+	insertPowOf2Aux(T, V, P2, R),
+	!.
+
+insertPowOf2(L, V, R):-
+	insertPowOf2Aux(L, V, 1, R).
+
+% --------------------------------------------------------------------------------
+% 11. a. Test whether a list is a set (check if it has duplicates).
+
+isSet([]):-
+	!,
+	true.
+isSet([H|T]):-
+	noOfOccurrences(T, H, N),
+	N > 0,
+	!,
+	false.
+isSet([H|T]):-
+	noOfOccurrences(T, H, N),
+	N =:= 0,
+	isSet(T).
+
+% --------------------------------------------------------------------------------
+% 11. b. Remove the first 3 occurrences of a number in a list. If it occurs less than 3 times, remove it altogether.
+
+% remove the first N occurrences of a value V in a list L
+removeFirstNOccurrences([], _, _, []).
+removeFirstNOccurrences([H|T], _, 0, [H|T]).
+removeFirstNOccurrences([H|T], H, N, R):-
+	N > 0,
+	N1 is N - 1,
+	removeFirstNOccurrences(T, H, N1, R),
+	!.
+removeFirstNOccurrences([H|T], V, N, [H|R]):-
+	N > 0,
+	H \= V,
+	removeFirstNOccurrences(T, V, N, R),
+	!.
+
+removeOccurring3OrLess([], _, []).
+removeOccurring3OrLess([H|T], H, T1):-
+	noOfOccurrences(T, H, N),
+	N < 2,
+	removeFirstNOccurrences(T, H, 3, T1),
+	!.
+removeOccurring3OrLess([H|T], H, T1):-
+	noOfOccurrences([H|T], H, N),
+	N >= 3,
+	removeFirstNOccurrences(T, H, 2, T1).
+removeOccurring3OrLess([H|T], E, [H|R]):-
+	H \= E,
+	removeOccurring3OrLess(T, E, R).
+
+% --------------------------------------------------------------------------------
+% 12. a. Check if two sets are equal, without using set difference.
+
+% compute the length of a list
+listLength([], 0).
+listLength([_|T], R):-
+		listLength(T, Rt),
+		R is Rt + 1.
+
+% check if each element of a given list L1 appears the same amount of times in L2, as it does in L1. if we get to the end of the L1, then that means each element from it occurred the same number of times in both L1 and in L2.
+areEqualSetsAux([], _):-
+	!,
+	true.
+areEqualSetsAux([], []):-
+	!,
+	true.
+areEqualSetsAux([H1|T1], L2):-
+	noOfOccurrences(L2, H1, N1),
+	noOfOccurrences([H1|T1], H1, N2),
+	N1 \= N2,
+	!,
+	false.
+areEqualSetsAux([_|T1], L2):-
+	areEqualSetsAux(T1, L2).
+
+% check if two sets are equal. if their lengths are different, then they cannot be equal.
+areEqualSets(L1, L2):-
+	listLength(L1, R1),
+	listLength(L2, R2),
+	R1 \= R2,
+	!,
+	false.
+areEqualSets(L1, L2):-
+	areEqualSetsAux(L1, L2).
+
+% 12. b. Get the n-th value from a list.
+
+getNthVal([], _, false):- !.
+getNthVal([H], _, H):- !.
+getNthVal([H|_], N, H):-
+	N =< 1,
+	!.
+getNthVal([_|T], N, R):-
+	N1 is N - 1,
+	getNthVal(T, N1, R).
+
+% --------------------------------------------------------------------------------
+% 13. a. Substitute a value from a list with a list (assuming that each occurrence of the value is substituted, not just the first one).
+
+substituteVal([], _, _, []).
+substituteVal([H|T], H, L, [L|R]):-
+	substituteVal(T, H, L, R).
+substituteVal([H|T], E, L, [H|R]):-
+	H \= E,
+	substituteVal(T, E, L, R),
+	!.
+
+% 13. b. Remove the n-th value from a list.
+
+removeNthVal([], _, []).
+removeNthVal([_|T], 1, R):-
+	removeNthVal(T, 0, R).
+removeNthVal([H|T], N, [H|R]):-
+	N \= 1,
+	N1 is N - 1,
+	removeNthVal(T, N1, R).
+
+% --------------------------------------------------------------------------------
+% 14. a. Remove all values that appear more than once, in a list.
+
+removeDupes([], []).
+removeDupes([H|T], [H|R]):-
+	noOfOccurrences(T, H, N),
+	N =:= 0,
+	removeDupes(T, R),
+	!.
+removeDupes([H|T], R):-
+	eliminate(T, H, T1),
+	removeDupes(T1, R),
+	!.
+
+% 14. b. Remove all occurrences of the maximum value in a list.
+
+% compute the greatest value from a list, that is greater than a given value.
+getMaxAux([], Crt, Crt):- !.
+getMaxAux([H|T], Crt, R):-
+	H > Crt,
+	getMaxAux(T, H, R),
+	!.
+getMaxAux([_|T], Crt, R):-
+	getMaxAux(T, Crt, R),
+	!.
+
+% get the maximum value of a list.
+getMax([H|T], R):-
+	getMaxAux(T, H, R).
+
+removeMax(L, R):-
+	getMax(L, Max),
+	eliminate(L, Max, R).
+
+% --------------------------------------------------------------------------------
+% 15. a. Check if a list has a valley aspect (meaning its values decrease up to a point, and then start increasing).
+
+% check if a list has a valley aspect, by using an auxiliary value to verify whether the list is currently decreasing or increasing.
+checkIfValleyAux([], 0):-
+	!,
+	true.
+checkIfValleyAux([], 1):-
+	!,
+	false.
+checkIfValleyAux([_], 0):-
+	!,
+	true.
+checkIfValleyAux([_], 1):-
+	!,
+	false.
+checkIfValleyAux([H1, H2|T], Decreasing):-
+	H1 >= H2,
+	Decreasing =:= 1,
+	checkIfValleyAux([H2|T], 1),
+	!.
+checkIfValleyAux([H1, H2|T], _):-
+	H1 =< H2,
+	checkIfValleyAux([H2|T], 0),
+	!.
+
+checkIfValley(L):-
+	checkIfValleyAux(L, 1).
+
+% 15. b. Alternate sum of elements. See 5. b.
+
+% --------------------------------------------------------------------------------
+% 16. a. Remove all elements that only appear once in a list.
+
+% remove all elements from a list, which only occur once in another list, L.
+removeSingleOccurrenceAux([], _, []).
+removeSingleOccurrenceAux([H|T], L, [H|R]):-
+	noOfOccurrences(L, H, N),
+	N > 1,
+	removeSingleOccurrenceAux(T, L, R),
+	!.
+removeSingleOccurrenceAux([_|T], L, R):-
+	removeSingleOccurrenceAux(T, L, R),
+	!.
+
+removeSingleOccurrence(L, R):-
+	removeSingleOccurrenceAux(L, L, R).
+
+% --------------------------------------------------------------------------------
+% 16. b. Check if a list has a mountain aspect (meaning its values increase up to a point, and then start decreasing).
+
+% check if a list has a mountain aspect, by using an auxiliary value to verify whether the list is currently decreasing or increasing.
+checkIfMountainAux([], 1):-
+	!,
+	true.
+checkIfMountainAux([], 0):-
+	!,
+	false.
+checkIfMountainAux([_], 0):-
+	!,
+	false.
+checkIfMountainAux([_], 1):-
+	!,
+	true.
+checkIfMountainAux([H1, H2|T], Decreasing):-
+	H1 =< H2,
+	Decreasing =:= 0,
+	checkIfMountainAux([H2|T], 0),
+	!.
+checkIfMountainAux([H1, H2|T], _):-
+	H1 >= H2,
+	checkIfMountainAux([H2|T], 1),
+	!.
+
+
+checkIfMountain(L):-
+	checkIfMountainAux(L, 0).

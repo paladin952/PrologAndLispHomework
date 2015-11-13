@@ -1,0 +1,546 @@
+% --------------------------------------------------------------------------------
+% 1. Increment a number written as a list (199 is [1, 9, 9], and after incrementing, it becomes [2, 0, 0]).
+
+% check whether a list contains only a given value.
+containsOnlyVal([], _):-
+	!,
+	true.
+containsOnlyVal([H|T], H):-
+	containsOnlyVal(T, H),
+	!.
+containsOnlyVal([_], _):-
+	!,
+	false.
+
+listLength([], 0).
+listLength([_|T], R):-
+	listLength(T, R1),
+	R is R1 + 1,
+	!.
+
+% create a list that contains the same value N times.
+makeListWithNVals(_, 0, []).
+makeListWithNVals(V, N, [V|R]):-
+	N1 is N - 1,
+	makeListWithNVals(V, N1, R),
+	!.
+
+% go through a list of digits. if we reach the end and the last digit is 9, set it to 0, and go back and increment all the other digits, changing 9's to 0's where applicable, and continuing (think of it like an assembly carry flag).
+incDigAux([], _, []).
+incDigAux([H], 1, [0]):-
+	H =:= 9,
+	!.
+incDigAux([H], 0, [H1]):-
+	H \= 9,
+	H1 is H + 1,
+	!.
+incDigAux([H|T], 1, [0|R]):-
+	H =:= 9,
+	incDigAux(T, CF, R),
+	CF = 1,
+	!.
+incDigAux([H|T], 0, [H1|R]):-
+	H \= 9,
+	incDigAux(T, CF, R),
+	CF = 1,
+	H1 is H + 1,
+	!.
+incDigAux([H|T], 0, [H|R]):-
+	incDigAux(T, CF, R),
+	CF = 0,
+	!.
+
+% if the number contains all 9's, then create a new list, containing 1 on the first position, followed by length(L) 0 digits.
+incDig(L, [1|R]):-
+	containsOnlyVal(L, 9),
+	listLength(L, N),
+	makeListWithNVals(0, N, R),
+	!.
+incDig(L, R):-
+	incDigAux(L, 0, R).
+
+% --------------------------------------------------------------------------------
+% 2. Decrement a number written as a list (199 is [2, 0, 0], and after decrementing, it becomes [1, 9, 9]).
+
+decDigAux([], _, []).
+decDigAux([H], 1, [9]):-
+	H =:= 0,
+	!.
+decDigAux([H], 0, [H1]):-
+	H \= 0,
+	H1 is H - 1,
+	!.
+decDigAux([H|T], 1, [9|R]):-
+	H =:= 0,
+	decDigAux(T, CF, R),
+	CF = 1,
+	!.
+decDigAux([H|T], 0, [H1|R]):-
+	H \= 0,
+	decDigAux(T, CF, R),
+	CF = 1,
+	H1 is H - 1,
+	!.
+decDigAux([H|T], 0, [H|R]):-
+	decDigAux(T, CF, R),
+	CF = 0,
+	!.
+
+% if the number is of the form 10000000..., then create a new list, containing 1 on the first position, followed by length(L) 0 digits.
+decDig([H|T], R):-
+	H =:= 1,
+	containsOnlyVal(T, 0),
+	listLength(T, N),
+	N > 0,
+	makeListWithNVals(9, N, R),
+	!.
+decDig(L, R):-
+	decDigAux(L, 0, R).
+
+% --------------------------------------------------------------------------------
+% 3. Compute the sum of two numbers written as lists (199 is [1, 9, 9], and by calling listSum([9, 9], [1]), we get R = [1, 0, 0]).
+
+% compute the inverse of a list, using an accumulator.
+getListInverseAux([], A, A).
+getListInverseAux([H|T], A, R):-
+	getListInverseAux(T, [H|A], R).
+
+getListReverse(L, R):-
+	getListInverseAux(L, [], R).
+
+% add up each digit from a list with the corresponding digit from the second list, adding 1 if the previous addition yielded a result that was >= 10 (think assembly carry flag).
+listSumAux([], [], 0, []).
+listSumAux([], [], 1, [1]).
+listSumAux([], [H2|T2], 1, [H3|R]):-
+	H2 + 1 < 10,
+	H3 is H2 + 1,
+	listSumAux([], T2, 0, R).
+listSumAux([], [H2|T2], 0, [H2|R]):-
+	listSumAux([], T2, 0, R).
+listSumAux([], [H2|T2], 1, [H3|R]):-
+	H2 + 1 >= 10,
+	H3 is mod(H2 + 1, 10),
+	listSumAux([], T2, 1, R).
+listSumAux([H1|T1], [], 1, [H3|R]):-
+	H1 + 1 < 10,
+	H3 is H1 + 1,
+	listSumAux(T1, [], 0, R).
+listSumAux([H1|T1], [], 0, [H1|R]):-
+	listSumAux(T1, [], 0, R).
+listSumAux([H1|T1], [], 1, [H3|R]):-
+	H1 + 1 >= 10,
+	H3 is mod(H1 + 1, 10),
+	listSumAux(T1, [], 1, R).
+listSumAux([H1|T1], [H2|T2], 0, [H3|R]):-
+	H1 + H2 < 10,
+	H3 is H1 + H2,
+	listSumAux(T1, T2, 0, R),
+	!.
+listSumAux([H1|T1], [H2|T2], 1, [H3|R]):-
+	H1 + H2 + 1 < 10,
+	H3 is H1 + H2 + 1,
+	listSumAux(T1, T2, 0, R),
+	!.
+listSumAux([H1|T1], [H2|T2], 0, [H3|R]):-
+	H1 + H2 >= 10,
+	H3 is mod(H1 + H2, 10),
+	listSumAux(T1, T2, 1, R),
+	!.
+listSumAux([H1|T1], [H2|T2], 1, [H3|R]):-
+	H1 + H2 + 1 >= 10,
+	H3 is mod(H1 + H2 + 1, 10),
+	listSumAux(T1, T2, 1, R),
+	!.
+
+listSum(L1, L2, R):-
+	getListReverse(L1, Li1),
+	getListReverse(L2, Li2),
+	listSumAux(Li1, Li2, 0, Ri),
+	getListReverse(Ri, R).
+
+% --------------------------------------------------------------------------------
+% 4. Compute the difference of two numbers written as lists (199 is [1, 9, 9], and by calling listSum([1, 0, 0], [1]), we get R = [9, 9]).
+
+% absolute value of a number
+absNo(A, A):-
+	A >= 0.
+absNo(A, -A):-
+	A < 0.
+
+% removes all occurrences of a value V from the beginning of a list L.
+removeValBegin([], _, []).
+removeValBegin([H|T], H, R):-
+	removeValBegin(T, H, R),
+	!.
+removeValBegin([H|T], E, [H|T]):-
+	H \= E,
+	!.
+
+% subtract each digit from a list with the corresponding digit from the second list, subtracting 1 if the previous addition yielded a result that was < 0 (think assembly carry flag).
+listDifferenceAux([], [], _, []).
+listDifferenceAux([], [H2|T2], 1, [H3|R]):-
+	H2 - 1 >= 0,
+	H3 is H2 - 1,
+	listDifferenceAux([], T2, 0, R).
+listDifferenceAux([], [H2|T2], 0, [H2|R]):-
+	listDifferenceAux([], T2, 0, R).
+listDifferenceAux([], [H2|T2], 1, [H3|R]):-
+	H2 - 1 < 0,
+	H3 is 10 - H2 - 1,
+	listDifferenceAux([], T2, 1, R).
+listDifferenceAux([H1|T1], [], 1, [H3|R]):-
+	H1 - 1 >= 0,
+	H3 is H1 - 1,
+	listDifferenceAux(T1, [], 0, R).
+listDifferenceAux([H1|T1], [], 0, [H1|R]):-
+	listDifferenceAux(T1, [], 0, R).
+listDifferenceAux([H1|T1], [], 1, [H3|R]):-
+	H1 - 1 < 0,
+	H3 is 10 - H1 - 1,
+	listDifferenceAux(T1, [], 1, R).
+listDifferenceAux([H1|T1], [H2|T2], 0, [H3|R]):-
+	H1 - H2 >= 0,
+	H3 is H1 - H2,
+	listDifferenceAux(T1, T2, 0, R),
+	!.
+listDifferenceAux([H1|T1], [H2|T2], 1, [H3|R]):-
+	H1 - H2 - 1 >= 0,
+	H3 is H1 - H2 - 1,
+	listDifferenceAux(T1, T2, 0, R),
+	!.
+listDifferenceAux([H1|T1], [H2|T2], 0, [H3|R]):-
+	H1 - H2 < 0,
+	H3 is 10 - H1 - H2,
+	listDifferenceAux(T1, T2, 1, R),
+	!.
+listDifferenceAux([H1|T1], [H2|T2], 1, [H3|R]):-
+	H1 - H2 - 1 < 0,
+	H3 is 10 - H1 - H2 - 1,
+	listDifferenceAux(T1, T2, 1, R),
+	!.
+
+listDifference(L1, L2, R):-
+	getListReverse(L1, Li1),
+	getListReverse(L2, Li2),
+	listDifferenceAux(Li1, Li2, 0, Ri),
+	getListReverse(Ri, R),
+	listLength(R, 1),
+	!.
+listDifference(L1, L2, R):-
+	getListReverse(L1, Li1),
+	getListReverse(L2, Li2),
+	listDifferenceAux(Li1, Li2, 0, Ri),
+	getListReverse(Ri, Rtemp),
+	listLength(Rtemp, N),
+	N > 1,
+	removeValBegin(Rtemp, 0, R),
+	!.
+
+% --------------------------------------------------------------------------------
+% 5. Determine the value of a polynomial in a point. The polynomial is given as the list of its coefficients (assuming that the first coeff is for x^0).
+
+getValToPow(_, 0, 1).
+getValToPow(V, N, R):-
+	N1 is N - 1,
+	getValToPow(V, N1, R1),
+	R is V * R1,
+	!.
+
+calcPolynomialValAux([], _, _, 0).
+calcPolynomialValAux([H|T], V, P, S):-
+	getValToPow(V, P, V1),
+	P1 is P + 1,
+	calcPolynomialValAux(T, V, P1, S1),
+	C is H * V1, 
+	S is S1 + C,
+	!.
+
+calcPolynomialVal(L, V, R):-
+	calcPolynomialValAux(L, V, 0, R).
+
+% --------------------------------------------------------------------------------
+% 6. Predicates for equality and <=, for numbers written in list representation.
+
+isEqual([], []):-
+	!,
+	true.
+isEqual([_], []):-
+	!,
+	false.
+isEqual([], [_]):-
+	!,
+	false.
+isEqual([H|T1], [H|T2]):-
+	isEqual(T1, T2),
+	!.
+isEqual(_, _):-
+	!,
+	false.
+
+isLessOrEqualTo([], []):-
+	!,
+	true.
+isLessOrEqualTo([_], []):-
+	!,
+	false.
+isLessOrEqualTo([], [_]):-
+	!,
+	true.
+isLessOrEqualTo(L1, L2):-
+	listLength(L1, N1),
+	listLength(L2, N2),
+	N1 < N2,
+	!,
+	true.
+isLessOrEqualTo(L1, L2):-
+	listLength(L1, N1),
+	listLength(L2, N2),
+	N1 > N2,
+	!,
+	false.
+isLessOrEqualTo([H1|T1], [H2|T2]):-
+	H1 =< H2,
+	isLessOrEqualTo(T1, T2),
+	!.
+isLessOrEqualTo([H1|T1], [H2|T1]):-
+	H1 > H2,
+	!,
+	false.
+
+% --------------------------------------------------------------------------------
+% 7. List sorting. Duplicates are kept.
+
+% insert a value into a list, just before the first element that is greater than it.
+insertValSorted([], V, [V]).
+insertValSorted([H|T], V, [H|R]):-
+	H < V,
+	insertValSorted(T, V, R).
+insertValSorted([H|T], V, [V, H|T]):-
+	H >= V.
+
+% sort a given list L, by using an auxiliary list, L2, to insert the elements of L in the right order into L2.
+sortListAux([], L2, L2).
+sortListAux([H|T], L2, R):-
+	insertValSorted(L2, H, R2),
+	sortListAux(T, R2, R),
+	!.
+
+sortList(L, R):-
+	sortListAux(L, [], R).
+
+% --------------------------------------------------------------------------------
+% 8. List sorting. Duplicates are truncated.
+
+% insert a value into a list, just before the first element that is greater than it. If the element is already in the list, then it is not inserted.
+insertValSortedNoRepetition([], V, [V]).
+insertValSortedNoRepetition([H|T], H, [H|T]).
+insertValSortedNoRepetition([H|T], E, [H|R]):-
+	H < E,
+	insertValSortedNoRepetition(T, E, R),
+	!.
+insertValSortedNoRepetition([H|T], E, [E, H|T]):-
+	H > E.
+
+% sort a given list L, by using an auxiliary list, L2, to insert the elements of L in the right order into L2. Repetitions are ignored.
+sortListNoRepetitionAux([], L2, L2).
+sortListNoRepetitionAux([H|T], L2, R):-
+	insertValSortedNoRepetition(L2, H, R2),
+	sortListNoRepetitionAux(T, R2, R),
+	!.
+
+sortListNoRepetition(L, R):-
+	sortListNoRepetitionAux(L, [], R).
+
+% --------------------------------------------------------------------------------
+% 9. Merge two sorted lists. Duplicates are kept.
+
+mergeLists([], L, L).
+mergeLists(L, [], L).
+mergeLists([H1|T1], [H2|T2], [H1|R]):-
+	H1 =< H2,
+	mergeLists(T1, [H2|T2], R),
+	!.
+mergeLists([H1|T1], [H2|T2], [H2|R]):-
+	mergeLists([H1|T1], T2, R),
+	!.
+
+% --------------------------------------------------------------------------------
+% 10. Merge two sorted lists. Duplicates are truncated.
+
+mergeListsNoRepetition([], L, L).
+mergeListsNoRepetition(L, [], L).
+mergeListsNoRepetition([H1|T1], [H2|T2], [H1|R]):-
+	H1 < H2,
+	mergeListsNoRepetition(T1, [H2|T2], R),
+	!.	
+mergeListsNoRepetition([H1|T1], [H2|T2], [H2|R]):-
+	H1 > H2,
+	mergeListsNoRepetition([H1|T1], T2, R),
+	!.
+mergeListsNoRepetition([H1|T1], [H1|T2], R):-
+	mergeListsNoRepetition([H1|T1], T2, R),
+	!.
+
+% --------------------------------------------------------------------------------
+% 11. Get the positions on which the max element of a list is located.
+
+% get the greatest value from a list L, that is greater than a given value, Crt. If no such value is found, the given value is returned.
+getMaxAux([], Crt, Crt).
+getMaxAux([H|T], Crt, R):-
+	H > Crt,
+	getMaxAux(T, H, R),
+	!.
+getMaxAux([_|T], Crt, R):-
+	getMaxAux(T, Crt, R),
+	!.
+
+getMax([H|T], R):-
+	getMaxAux(T, H, R).
+
+% get a list of the positions of all the elements of a list L that are equal to a given value M, starting at a position P.
+getPosAux([], _, _, []).
+getPosAux([M|T], M, P, [P|R]):-
+	P1 is P + 1,
+	getPosAux(T, M, P1, R),
+	!.
+getPosAux([_|T], M, P, R):-
+	P1 is P + 1,
+	getPosAux(T, M, P1, R),
+	!.
+
+getPosMax(L, R):-
+	getMax(L, M),
+	getPosAux(L, M, 1, R).
+
+% --------------------------------------------------------------------------------
+% 12. Replace a value V, from a list L, with all the values contained in a list L2.
+
+% insert all the elements of a list L2 in the beginning of another list L.
+addListBegin(L, [], L):- !.
+addListBegin(L, [H|T], [H|R]):-
+	addListBegin(L, T, R),
+	!.
+
+replaceValWithList([], _, _, []):- !.
+replaceValWithList([H|T], H, L, R):-
+	replaceValWithList(T, H, L, R2),
+	addListBegin(R2, L, R),
+	!.
+replaceValWithList([H|T], V, L, [H|R]):-
+	replaceValWithList(T, V, L, R),
+	!.
+
+% --------------------------------------------------------------------------------
+% 13. Multiply a number represented as a list, with a digit. (199 is [1, 9, 9], and when calling multiplyNo([1, 9, 9], 2), we get [3, 9, 8] as result).
+
+% go through a list L, multiplying the head with a given value D (no, Felix, not the D) and adding the remainder Rem to that. Rem is the remainder of (H * D + Rem) / 10 (basically, cifra zecilor), from the previous step (initially, Rem is going to be 0).
+multiplyNoAux([], _, _, []).
+multiplyNoAux([H], D, Rem, [H2, Rem2]):-
+	H * D + Rem >= 10,
+	H2 is mod(H * D + Rem, 10),
+	Rem2 is (H * D + Rem) // 10,
+	!.
+multiplyNoAux([H], D, Rem, [H2]):-
+	H * D + Rem < 10,
+	H2 is H * D + Rem,
+	!.
+multiplyNoAux([H|T], D, Rem, [H2|R]):-
+	H * D + Rem < 10,
+	H2 is H * D + Rem,
+	multiplyNoAux(T, D, 0, R),
+	!.
+multiplyNoAux([H|T], D, Rem, [H2|R]):-
+	H * D + Rem >= 10,
+	H2 is mod(H * D + Rem, 10),
+	Rem2 is (H * D + Rem) // 10,
+	multiplyNoAux(T, D, Rem2, R),
+	!.
+
+multiplyNo(L, V, R):-
+	getListReverse(L, Laux),
+	multiplyNoAux(Laux, V, 0, Raux),
+	getListReverse(Raux, R).
+
+% --------------------------------------------------------------------------------
+% 14. Get the list of positions of the minimum of a list.
+
+% get the lowest value of a list, that is lower than a given value Crt.
+getMinAux([], Crt, Crt).
+getMinAux([H|T], Crt, R):-
+	H < Crt,
+	getMinAux(T, H, R),
+	!.
+getMinAux([_|T], Crt, R):-
+	getMinAux(T, Crt, R).
+
+getMin([H|T], R):-
+	getMinAux(T, H, R).
+
+% gets the positions of a value V in a list L. list positions will start at P.
+getMinPosAux([], _, _, []).
+getMinPosAux([H|T], H, P, [P|R]):-
+	P1 is P + 1,
+	getMinPosAux(T, H, P1, R),
+	!.
+getMinPosAux([_|T], V, P, R):-
+	P1 is P + 1,
+	getMinPosAux(T, V, P1, R).
+
+getMinPos(L, R):-
+	getMin(L, M),
+	getMinPosAux(L, M, 1, R).
+
+% 15. Remove all sequences of consecutive values from a list.
+
+% remove all values that are consecutive, in a list. The predicate also checks if the head of the list is the successor of a value Prev (Prev is going to be the previous element from the list), in which case it'll remove that head as well.
+removeConsecutiveValsAux([], _, []).
+removeConsecutiveValsAux([H], Prev, [H]):-
+	not(Prev =:= H - 1),
+	!.
+removeConsecutiveValsAux([_], _, []).
+removeConsecutiveValsAux([H1, H2|T], _, R):-
+	H1 =:= H2 - 1,
+	removeConsecutiveValsAux(T, H2, R),
+	!.
+removeConsecutiveValsAux([H1, H2|T], Prev, [H1|R]):-
+	not(H1 =:= H2 - 1),
+	not(Prev =:= H1 - 1),
+	removeConsecutiveValsAux([H2|T], H1, R),
+	!.
+removeConsecutiveValsAux([H1, H2|T], _, R):-
+	removeConsecutiveValsAux([H2|T], H1, R),
+	!.
+
+removeConsecutiveVals([H|T], R):-
+	listLength([H|T], N),
+	N > 1,
+	removeConsecutiveValsAux(T, H, R),
+	!.
+removeConsecutiveVals(L, L).
+
+% 16. Remove all sequences of increasing values from a list.
+
+% remove all values that are increasing, in a list. The predicate also checks if the head of the list is greater than a value Prev (Prev is going to be the previous element from the list), in which case it'll remove that head as well.
+removeIncreasingValsAux([], _, []).
+removeIncreasingValsAux([H], Prev, [H]):-
+	Prev > H,
+	!.
+removeIncreasingValsAux([_], _, []).
+removeIncreasingValsAux([H1, H2|T], _, R):-
+	H1 =< H2,
+	removeIncreasingValsAux(T, H2, R),
+	!.
+removeIncreasingValsAux([H1, H2|T], Prev, [H1|R]):-
+	Prev > H1,
+	removeIncreasingValsAux([H2|T], H1, R),
+	!.
+removeIncreasingValsAux([H1, H2|T], _, R):-
+	removeIncreasingValsAux([H2|T], H1, R),
+	!.
+
+removeIncreasingVals([H|T], R):-
+	listLength([H|T], N),
+	N > 1,
+	removeIncreasingValsAux(T, H, R),
+	!.
+removeIncreasingVals(L, L).
