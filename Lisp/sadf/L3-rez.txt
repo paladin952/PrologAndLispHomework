@@ -1,0 +1,209 @@
+L3.P1
+(setf l '(1 2 (3 4) 5))
+(defun lungime(l)
+ (cond
+	((atom l) 1)
+	(t (apply '+ (mapcar 'lungime l)))
+ )
+)
+L3.P2
+(setf l '(1 2 s (3 d)))
+(defun suma(l)
+ (cond
+	((numberp l) l)
+	(t (apply '+ (mapcar 'suma l)))
+ )
+)
+L3.P3
+(defun  prod(l)
+  (cond
+   ((numberp l) l)
+   ((atom l) 0)
+   (t (apply '* (mapcar 'prod l)))
+ )   
+)
+L3.P4
+(setf l '(2 3 (a 4) r))
+(defun pro(l)
+ (cond
+	((numberp l) l)
+	(t (apply '* (mapcar 'pro l)))
+ )
+)
+L3.P5
+(setf l '(1 4 (3 5) 3))
+(defun maxim(l)
+ (cond
+	((numberp l) l)
+	(t (Apply 'max (mapcar 'maxim l)))
+ )
+)
+L3.P6
+(setf l '(1 2 (3 (4 (5))) 4))
+(defun adancime(l)
+ (cond 
+	((atom l) 0)
+	(t (apply '+ 1 (mapcar 'adancime l)))
+ )
+)
+L3.P7
+;nu e buna inca
+(setf l '(1 2 (3 4) 5 ))
+(defun membru(l e)
+ (cond
+	((equal l e) 1)
+	(t (and (1 (mapcar 'membru l e) )))
+
+ )
+)
+L3.P8
+(setf l '(1 2 (3 4) (4 5 6) 34))
+(defun inv(l)
+ (cond 
+	((null l) nil)
+	((atom l) (list l))
+	(t (append (inv (cdr l)) (list (car l))))
+ )
+)
+;cu fc map
+(defun inver(l)
+ (cond
+	((atom l) l)
+	(t (mapcar 'inver (reverse l)))	
+ )
+)
+L3.P9
+(setf l '(a (b (c)) (d) (e (f))) )
+(setf l1 '((a (b (c d))) e (f (g (h (i))))))
+(defun adanc(l k)
+ (cond
+	((and (= k 0) (atom l)) (list l))
+	((= k 0) nil)
+	(t (mapcan 
+		'(lambda (l)
+		   (adanc l (- k 1))
+		)
+		 l))
+ )
+)
+L3.P10
+(setf l '(1 2 (3 2) 2 (4 (2) 2 67)) )
+(defun delete(l e)
+ (cond
+	((equal l e) nil)
+	((and (Atom l) (not (equal l e))) (list l))
+	(t (list (mapcan 
+			'(lambda (l) 
+				(delete l e)
+		 	 )
+			l 
+		   )))
+ )
+)
+L3.P11	
+(setf l '(1 2 3 (4 5) (2 1 (3))))
+(defun par(l)
+ (cond
+	((= (mod l 2) 0) T)
+	(t nil)
+ )
+)
+(defun impar(l)
+ (cond
+	((= (mod l 2) 1) T)
+	(t nil)
+ )
+)
+(defun listpar(l)
+ (cond
+	((null l) nil)
+	((and (par (car l)) (atom (car l)))
+		 (append (list (car l)) (listpar (cdr l))))
+	(t (listpar (cdr l)))
+ )
+)
+(defun sumapare(l)
+ (COND
+	((PAR L) l)
+	(t (apply '+ (mapcar 'sumapare l)))
+ )
+)
+(defun sumaimpare(l)
+ (cond 
+ 	((impar l) l)
+	(t (apply '+ (mapcar 'sumaimpare l)))
+ )
+)
+(defun suma(l)
+ (cond
+	(t (- (sumapare l) (sumaimpare l)))
+ )
+)
+L3.P12
+(setf l '(1 2 (3 4) 2 (5 2)))
+(setf e '2)
+(setf p '0)
+(defun inloc(l e p)
+ (cond
+	((equal l e) (list p))
+	((and (not (equal l e)) (atom l)) (list l))
+	(t (list (mapcan
+			'(lambda (l)
+				(inloc l e p)
+			 )
+			l
+		 )))
+ )
+)
+L3.P13
+(setf l '(1 2 (3 4) 2 (5 2)))
+(setf e '2)
+(setf p '(1 1 1))
+(defun inloc(l e p)
+ (cond
+	((equal l e) (list p))
+	((and (not (equal l e)) (atom l)) (list l))
+	(t (list (mapcan
+			'(lambda (l)
+				(inloc l e p)
+			 )
+			l
+		 )))
+ )
+)
+L3.P14
+(setf l '(((A B) C) (D E)))
+(defun listatomi(l)
+ (cond
+	((atom l) (list l))
+;	(t (mapcan 'listatomi l))
+	(T (APPLY 'append (mapcar 'listatomi l)))
+ )
+)
+L3.P15
+(setf l '(a (b (c)) (d) (e (f))))
+(setf n1 'b)
+(setf n2 'g)
+(defun apar(l n)
+ (cond
+	((equal l n) T)
+	(t (apply 'and  (T (mapcar
+				'(lambda (l)
+					(apar l n)
+			   	 )
+			 l) )
+	   )
+	)
+ )
+)
+(Defun apare(l e)
+ (cond
+	((equal l e) T)
+;	((and (Atom l) (not (equal l e))) nil)
+	(t (apply 'or t (
+			 mapcan '(lambda (l) (apare l e) ) l 
+			)
+	   )
+	)
+ )
+)
