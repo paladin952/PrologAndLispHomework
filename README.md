@@ -1,2 +1,2 @@
 # PrologAndLispHomework
-Just some prolog and lisp homework from faculty
+Just some prolog and lisp problems
